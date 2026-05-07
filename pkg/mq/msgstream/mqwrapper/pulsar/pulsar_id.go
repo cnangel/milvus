@@ -63,13 +63,14 @@ func (pid *pulsarID) LessOrEqualThan(msgID []byte) (bool, error) {
 		return false, err
 	}
 
-	if pid.messageID.LedgerID() <= pMsgID.LedgerID() &&
-		pid.messageID.EntryID() <= pMsgID.EntryID() &&
-		pid.messageID.BatchIdx() <= pMsgID.BatchIdx() {
-		return true, nil
+	// Lexicographic comparison: (ledger, entry, batchIdx)
+	if pid.messageID.LedgerID() != pMsgID.LedgerID() {
+		return pid.messageID.LedgerID() < pMsgID.LedgerID(), nil
 	}
-
-	return false, nil
+	if pid.messageID.EntryID() != pMsgID.EntryID() {
+		return pid.messageID.EntryID() < pMsgID.EntryID(), nil
+	}
+	return pid.messageID.BatchIdx() <= pMsgID.BatchIdx(), nil
 }
 
 func (pid *pulsarID) Equal(msgID []byte) (bool, error) {
